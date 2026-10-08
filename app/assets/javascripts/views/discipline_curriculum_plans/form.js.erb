@@ -1,0 +1,110 @@
+window['content_list_model_name'] = 'discipline_curriculum_plan';
+window['content_list_submodel_name'] = 'curriculum_plan';
+
+$(function () {
+  'use strict';
+
+  var $unity = $('#discipline_curriculum_plan_curriculum_plan_attributes_unity_id');
+  var $grade = $('#discipline_curriculum_plan_curriculum_plan_attributes_grade_id');
+  var $year = $('#discipline_curriculum_plan_curriculum_plan_attributes_year');
+  var $discipline = $('#discipline_curriculum_plan_discipline_id');
+  var $schoolTermType = $('#discipline_curriculum_plan_curriculum_plan_attributes_school_term_type_id');
+  var $schoolTermContainer = $('#school-term-container');
+  var $schoolTerm = $('#discipline_curriculum_plan_curriculum_plan_attributes_school_term_type_step_id');
+  var flashMessages = new FlashMessages();
+  var idContentsCounter = 1;
+
+  $schoolTermType.on('change', function () {
+    updateSchoolTermInput($schoolTermType, $schoolTerm, $schoolTermContainer, flashMessages);
+  });
+
+  updateSchoolTermInput($schoolTermType, $schoolTerm, $schoolTermContainer, flashMessages);
+
+  if (typeof validate_attachment_size === 'function') {
+    validate_attachment_size($('#discipline_curriculum_plan'));
+  }
+
+  $('#discipline_curriculum_plan_curriculum_plan_attributes_contents_tags').on('change', function (e) {
+    if (e.val && e.val.length) {
+      var uniqueId = 'customId_' + idContentsCounter++;
+      var content_description = e.val.join(", ");
+      if (content_description.trim().length &&
+        !$('input[type=checkbox][data-content_description="' + content_description + '"]').length) {
+
+        var html = JST['templates/layouts/contents_list_manual_item']({
+          id: uniqueId,
+          description: content_description,
+          model_name: 'discipline_curriculum_plan',
+          submodel_name: 'curriculum_plan'
+        });
+
+        $('#contents-list').append(html);
+        $('.list-group.checked-list-box .list-group-item:not(.initialized)').each(initializeListEvents);
+      } else {
+        var content_input = $('input[type=checkbox][data-content_description="' + content_description + '"]');
+        content_input.closest('li').show();
+        content_input.prop('checked', true).trigger('change');
+      }
+
+      $('.discipline_curriculum_plan_curriculum_plan_contents_tags .select2-input').val("");
+    }
+    $(this).select2('val', '');
+  });
+
+  $('#discipline_curriculum_plan_curriculum_plan_attributes_objectives_tags').on('change', function (e) {
+    if (e.val && e.val.length) {
+      var uniqueId = 'customId_' + idContentsCounter++;
+      var objective_description = e.val.join(", ");
+      if (objective_description.trim().length &&
+        !$('input[type=checkbox][data-objective_description="' + objective_description + '"]').length) {
+
+        var html = JST['templates/layouts/objectives_list_manual_item']({
+          id: uniqueId,
+          description: objective_description,
+          model_name: 'discipline_curriculum_plan',
+          submodel_name: 'curriculum_plan'
+        });
+
+        $('#objectives-list').append(html);
+        $('.list-group.checked-list-box .list-group-item:not(.initialized)').each(initializeListEvents);
+      } else {
+        var objective_input = $('input[type=checkbox][data-objective_description="' + objective_description + '"]');
+        objective_input.closest('li').show();
+        objective_input.prop('checked', true).trigger('change');
+      }
+
+      $('.discipline_curriculum_plan_curriculum_plan_objectives_tags .select2-input').val("");
+    }
+    $(this).select2('val', '');
+  });
+
+  if ($('#action_name').val() == 'show') {
+    $('.list-group.checked-list-box .list-group-item').each(function () {
+      $(this).off('click');
+    });
+  }
+});
+
+$(function () {
+  if ($.fn.maxlength) {
+    $('textarea[maxLength]').maxlength();
+  }
+
+  if (typeof createSummerNote === 'function') {
+    createSummerNote("textarea[id^=discipline_curriculum_plan_curriculum_plan_attributes_methodology]", {
+      toolbar: [
+        ['font', ['bold', 'italic', 'underline', 'clear']],
+      ]
+    });
+    createSummerNote("textarea[id^=discipline_curriculum_plan_curriculum_plan_attributes_evaluation]", {
+      toolbar: [
+        ['font', ['bold', 'italic', 'underline', 'clear']],
+      ]
+    });
+    createSummerNote("textarea[id^=discipline_curriculum_plan_curriculum_plan_attributes_references]", {
+      toolbar: [
+        ['font', ['bold', 'italic', 'underline', 'clear']],
+      ]
+    });
+  }
+});

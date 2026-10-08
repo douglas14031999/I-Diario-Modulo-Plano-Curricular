@@ -1,0 +1,6 @@
+pt-BR:
+  knowledge_area_curriculum_plans:
+    do:
+      permission: "Você não tem permissão para copiar planos curriculares por área"
+    do_copy:
+      copying: "O plano curricular por área está sendo copiado para o seu plano de ensino."

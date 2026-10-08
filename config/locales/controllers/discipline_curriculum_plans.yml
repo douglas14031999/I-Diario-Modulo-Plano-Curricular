@@ -1,0 +1,6 @@
+pt-BR:
+  discipline_curriculum_plans:
+    do:
+      permission: "Você não tem permissão para copiar planos curriculares"
+    do_copy:
+      copying: "O plano curricular está sendo copiado para o seu plano de ensino."

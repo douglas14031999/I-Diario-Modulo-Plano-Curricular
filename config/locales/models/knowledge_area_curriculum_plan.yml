@@ -1,0 +1,16 @@
+pt-BR:
+  activerecord:
+    models:
+      knowledge_area_curriculum_plan:
+        one: "Plano Curricular por áreas de conhecimento"
+        other: "Planos Curriculares por áreas de conhecimento"
+
+    attributes:
+      knowledge_area_curriculum_plan:
+        curriculum_plan: "Plano Curricular"
+        curriculum_plan_id: "Plano Curricular"
+        knowledge_areas: "Áreas de conhecimento"
+        knowledge_area_ids: "Áreas de conhecimento"
+        experience_fields: "Campos de experiência"
+        objectives: "Objetivos"
+        contents: "Conteúdos"

@@ -1,0 +1,61 @@
+<div class="widget-body no-padding">
+  <%= simple_form_for :filter, { url: discipline_curriculum_plans_path, method: :get, html: { class: 'filterable_search_form' } } do |f| %>
+    <div class="table-responsive">
+      <table id="resources" class="table table-bordered table-only-inner-bordered table-striped table-condensed table-hover">
+        <thead>
+          <tr>
+            <th scope="col" style="min-width: 140px;">
+              <%= f.input :by_year, label: false, placeholder: 'Ano', input_html: { value: params.dig(:filter, :by_year) } %>
+            </th>
+            <th scope="col" style="min-width: 120px;">
+              <%= f.input :by_grade, as: :select2, elements: @grades,
+                    label: false, placeholder: 'Série/Ano', selected: params.dig(:filter, :by_grade),
+                    input_html: { value: params.dig(:filter, :by_grade) } %>
+            </th>
+            <th scope="col" colspan="2" style="min-width: 250px;">
+              <%= f.input :by_discipline, as: :select2, elements: Discipline.ordered,
+                    label: false, placeholder: 'Disciplina', selected: params.dig(:filter, :by_discipline),
+                    input_html: { value: params.dig(:filter, :by_discipline) } %>
+            </th>
+            <th scope="col" style="min-width: 130px;">
+              <%= f.input :by_school_term_type_id, as: :select2, elements: @school_term_type,
+                    label: false, placeholder: 'Filtrar tipo de período', selected: params.dig(:filter, :by_school_term_type_id),
+                    input_html: { value: params.dig(:filter, :by_school_term_type_id) } %>
+            </th>
+            <th scope="col" style="min-width: 130px;">
+              <%= f.input :by_school_term_type_step_id, as: :select2, elements: @school_term_type_step,
+                    label: false, placeholder: 'Filtrar período', selected: params.dig(:filter, :by_school_term_type_step_id),
+                    input_html: { value: params.dig(:filter, :by_school_term_type_step_id) } %>
+            </th>
+            <th scope="col" colspan="2" style="min-width: 190px; width: 190px;">
+              <% if current_user.can_change?(:discipline_curriculum_plans) %>
+                <%= link_to '<i class="fa fa-plus"></i> Novo'.html_safe,
+                      new_discipline_curriculum_plan_path,
+                      class: 'btn btn-primary pull-right', style: 'width: 100%;' %>
+              <% end %>
+            </th>
+          </tr>
+
+          <tr>
+            <th scope="col" style="min-width: 100px;">Ano</th>
+            <th scope="col" style="min-width: 120px;">Série/Ano</th>
+            <th scope="col" style="min-width: 160px;">Disciplina</th>
+            <th scope="col" style="min-width: 160px;">Unidade Temática</th>
+            <th scope="col" style="min-width: 130px;">Tipo de período escolar</th>
+            <th scope="col" style="min-width: 130px;">Período escolar</th>
+            <th scope="col" style="min-width: 150px;">Cadastrado por</th>
+            <th scope="col" style="min-width: 190px; width: 190px; white-space: nowrap;"></th>
+          </tr>
+        </thead>
+
+        <%= render 'resources' %>
+
+        <tfoot id="paginator" class="remote">
+          <td id="pagination-tfoot" colspan="8">
+            <%= render 'shared/pagination', records: @discipline_curriculum_plans %>
+          </td>
+        </tfoot>
+      </table>
+    </div>
+  <% end %>
+</div>

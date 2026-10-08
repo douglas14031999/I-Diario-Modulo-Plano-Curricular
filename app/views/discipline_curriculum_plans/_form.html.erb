@@ -1,0 +1,318 @@
+<% content_for :js do %>
+  <%= javascript_include_tag 'list-contents' %>
+  <%= javascript_include_tag 'attachemnt_size_validator' %>
+  <%= javascript_include_tag 'summernote' %>
+  <%= javascript_include_tag 'views/teaching_plans/shared' %>
+  <%= javascript_include_tag 'views/discipline_curriculum_plans/form' %>
+  <%= javascript_include_tag 'views/layouts/copy-objectives' %>
+<% end %>
+
+<%= hidden_field_tag :action_name, action_name %>
+<%= hidden_field_tag :yearly_school_term_type_id, @yearly_term_type_id %>
+
+<%= simple_form_for @discipline_curriculum_plan,
+    url: discipline_curriculum_plan_form_url(@discipline_curriculum_plan, action_name),
+    method: curriculum_plan_form_method(action_name),
+    html: { class: 'smart-form', id: 'discipline_curriculum_plan' } do |f| %>
+
+  <%= f.error_notification %>
+  <%= render 'base_errors', f: f %>
+
+  <%= f.simple_fields_for :curriculum_plan, @discipline_curriculum_plan.curriculum_plan do |cp_form| %>
+    <%= cp_form.hidden_field :id %>
+
+    <fieldset>
+      <%= render 'teaching_plans/diciplines_modal', f: cp_form %>
+      <% if @allows_copy_experience_fields_in_lesson_plans %>
+        <%= render 'teaching_plans/experience_fields_modal', f: cp_form %>
+      <% end %>
+
+      <div class="row">
+        <div class="col col-sm-4">
+          <%= cp_form.input :year, readonly: ['show', 'edit'].include?(action_name),
+                            input_html: { value: cp_form.object.year || current_school_calendar&.year || Date.current.year } %>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col col-sm-4">
+          <%= cp_form.association :unity, as: :select2,
+                elements: ([{ id: '', name: 'Toda a Rede', text: 'Toda a Rede' }] + @unities.map { |u| { id: u.id, name: u.to_s, text: u.to_s } }).to_json,
+                selected: (cp_form.object.unity_id.presence || ''),
+                label: 'Escola',
+                required: false,
+                input_html: { data: { without_json_parser: true } },
+                readonly: action_name.eql?('show') %>
+        </div>
+
+        <div class="col col-sm-4">
+          <%= cp_form.association :grade, as: :select2, elements: @grades,
+                                  selected: cp_form.object.grade_id,
+                                  required: true,
+                                  readonly: ['show', 'edit'].include?(action_name) %>
+        </div>
+
+        <div class="col col-sm-4">
+          <%= f.association :discipline, as: :select2, elements: @disciplines,
+                            selected: f.object.discipline_id,
+                            required: true,
+                            readonly: ['show', 'edit'].include?(action_name) %>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col col-sm-4">
+          <%= cp_form.association :school_term_type, as: :select2, required: true,
+                elements: SchoolTermType.to_select2(
+                  cp_form.object.year || current_school_calendar&.year || Date.current.year,
+                  nil,
+                  add_empty_element: false
+                ).to_json,
+                input_html: { value: cp_form.object.school_term_type_id,
+                              data: { without_json_parser: true } },
+                readonly: action_name.eql?('show') %>
+        </div>
+
+        <div id="school-term-container" class="col col-sm-4">
+          <%= cp_form.association :school_term_type_step, as: :select2,
+                                  input_html: { value: cp_form.object.school_term_type_step_id,
+                                                data: { without_json_parser: true } },
+                                  elements: [], required: true,
+                                  readonly: action_name == 'show' %>
+        </div>
+
+        <div class="col col-sm-4">
+          <%= f.input :thematic_unit, as: :string, readonly: action_name.eql?('show') %>
+        </div>
+      </div>
+
+      <div class="row textarea">
+        <div class="col col-sm-12">
+          <legend style="margin-bottom: 10px;">
+            <%= @discipline_curriculum_plan.class.human_attribute_name(:contents) %>
+            <abbr title="obrigatório">*</abbr>
+          </legend>
+          <% if f.object.errors[:'curriculum_plan.contents'].any? %>
+            <div class="alert alert-danger fade in">
+              <i class="fa-fw fa fa-times"></i>
+              <%= f.object.errors[:'curriculum_plan.contents'].first %>
+            </div>
+          <% end %>
+
+          <div class="well" style="max-height: 300px;overflow-y: auto; margin-top: 10px;">
+            <ul class="list-group checked-list-box" id="contents-list">
+              <% contents.each do |content| %>
+                <li class="list-group-item manual" style="display: flex;" id="curriculum_plan_<%= content.id %>">
+                  <%= check_box_tag("discipline_curriculum_plan[curriculum_plan_attributes][content_ids][]",
+                      content.id, content.id.in?(@discipline_curriculum_plan.contents.collect(&:id)),
+                      hidden: true, 'data-content_description': content.to_s ) %>
+                  <span style="margin-left: 5px;display: block;width: calc(100% - 85px);"><%= content %></span>
+                  <% if content.is_editable && !action_name.eql?('show') %>
+                    <div style="width: 80px;">
+                      <a class="btn new-btn-success" onclick="editContent('curriculum_plan_<%= content.id %>')">
+                        <i class="fa fa-pencil"></i>
+                      </a>
+                      <a class="btn new-btn-danger" onclick="removeContent('curriculum_plan_<%= content.id %>')">
+                        <i class="fa fa-trash"></i>
+                      </a>
+                    </div>
+                  <% end %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <% if !action_name.eql?('show') %>
+        <div class="row textarea">
+          <div class="col col-sm-12 contents-select2-container">
+            <% translation_contents = Translator.t('activerecord.attributes.discipline_curriculum_plan.contents', default: 'Conteúdos') %>
+            <%= cp_form.input :contents_tags,
+                as: :string,
+                label: "Adicionar #{translation_contents}",
+                input_html: {
+                  class: 'select2-tags',
+                  value: ''
+                }
+            %>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="row textarea">
+        <div class="col col-sm-12">
+          <legend style="margin-bottom: 10px;">
+            <%= @discipline_curriculum_plan.class.human_attribute_name(:objectives) %>
+          </legend>
+          <% if f.object.errors[:'curriculum_plan.objectives'].any? %>
+            <div class="alert alert-danger fade in">
+              <i class="fa-fw fa fa-times"></i>
+              <%= f.object.errors[:'curriculum_plan.objectives'].first %>
+            </div>
+          <% end %>
+          <% if !action_name.eql?('show') %>
+            <a href="#" data-toggle="modal" data-target="#disciplines-modal">
+              Copiar objetivos/habilidades por área
+            </a>
+            <% if @allows_copy_experience_fields_in_lesson_plans %>
+              |<a href="#" data-toggle="modal" data-target="#experience-modal">
+                Copiar objetivos por campos de experiência
+              </a>
+            <% end %>
+          <% end %>
+
+          <div class="well" style="max-height: 300px;overflow-y: auto; margin-top: 10px;">
+            <ul class="list-group checked-list-box" id="objectives-list">
+              <% objectives.each do |objective| %>
+                <li class="list-group-item manual" style="display: flex;" id="curriculum_plan_<%= objective.id %>">
+                  <%= check_box_tag("discipline_curriculum_plan[curriculum_plan_attributes][objective_ids][]",
+                      objective.id, objective.id.in?(@discipline_curriculum_plan.objectives.collect(&:id)),
+                      hidden: true, 'data-objective_description': objective.to_s ) %>
+                  <span style="margin-left: 5px;display: block;width: calc(100% - 85px);"><%= objective %></span>
+                  <% if objective.is_editable && action_name != 'show' %>
+                    <div style="width: 80px;">
+                      <a class="btn new-btn-success"
+                        onclick="editObjective('curriculum_plan_<%= objective.id %>')">
+                        <i class="fa fa-pencil"></i>
+                      </a>
+                      <a class="btn new-btn-danger"
+                        onclick="removeObjective('curriculum_plan_<%= objective.id %>')">
+                        <i class="fa fa-trash"></i>
+                      </a>
+                    </div>
+                  <% end %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <% if !action_name.eql?('show') %>
+        <div class="row textarea">
+          <div class="col col-sm-12 objectives-select2-container">
+            <% translation_objectives = Translator.t('activerecord.attributes.discipline_curriculum_plan.objectives', default: 'Objetivos') %>
+            <%= cp_form.input :objectives_tags,
+                as: :string,
+                label: "Adicionar #{translation_objectives}",
+                input_html: {
+                  class: 'select2-content-tags-ajax',
+                  value: '',
+                  data: {
+                    url: contents_path,
+                    data: []
+                  }
+                }
+            %>
+          </div>
+        </div>
+      <% end %>
+
+      <% @methodology_translation = Translation.find_by(key: 'navigation.methodology_by_discipline', group: 'teaching_plans')&.translation || 'Metodologia' %>
+      <% @evaluation_translation = Translation.find_by(key: 'navigation.avaliation_by_discipline', group: 'teaching_plans')&.translation || 'Avaliação' %>
+      <% @references_translation = Translation.find_by(key: 'navigation.references_by_discipline', group: 'teaching_plans')&.translation || 'Referências' %>
+
+      <div class="row textarea">
+        <div class="col col-sm-12">
+          <%= cp_form.input :methodology, label: @methodology_translation, input_html: { class: 'col col-sm-12 summernote-field', data: { disabled: action_name.eql?('show') }} %>
+        </div>
+      </div>
+
+      <div class="row textarea">
+        <div class="col col-sm-12">
+          <%= cp_form.input :evaluation, label: @evaluation_translation, input_html: { class: 'col col-sm-12 summernote-field', data: { disabled: action_name.eql?('show') }} %>
+        </div>
+      </div>
+
+      <div class="row textarea">
+        <div class="col col-sm-12">
+          <%= cp_form.input :references, label: @references_translation, input_html: { class: 'col col-sm-12 summernote-field', data: { disabled: action_name.eql?('show') }} %>
+        </div>
+      </div>
+
+      <div class="row textarea">
+        <div class="col col-sm-12">
+          <legend>Anexos</legend>
+          <div class="alert alert-info fade in">
+            <i class="fa-fw fa fa-info"></i>
+            <%= t('discipline_teaching_plans.form.format_message', default: 'Formatos aceitos: JPG, PNG, PDF, DOC, XLS.') + ' ' + t('discipline_teaching_plans.form.size_message', default: 'Tamanho máximo: 10MB.') %>
+          </div>
+          <br>
+          <% if cp_form.object.errors[:curriculum_plan_attachments].present? %>
+            <div class="alert alert-danger alert-block ">
+              <i class="fa-fw fa fa-times"></i>
+              <span class="help-inline">
+                <%= cp_form.object.errors[:curriculum_plan_attachments].join "<br />" %>
+              </span>
+            </div>
+          <% end %>
+          <table class="table table-striped table-bordered table-condensed records">
+            <thead>
+              <tr>
+                <th scope="col"><%= t('discipline_teaching_plans.form.attachments', default: 'Anexos') %></th>
+                <% if !action_name.eql?('show') %>
+                  <th scope="col" style="width: 73px"></th>
+                <% end %>
+              </tr>
+            </thead>
+
+            <tbody id="curriculum-plan-attachments">
+              <% if action_name.eql?('show') && cp_form.object.curriculum_plan_attachments.blank? %>
+                <tr class="nested-fields">
+                  <td><span>Nenhum documento anexado</span></td>
+                </tr>
+              <% else %>
+                <%= cp_form.simple_fields_for :curriculum_plan_attachments, cp_form.object.curriculum_plan_attachments do |attachment| %>
+                  <% if attachment.object.persisted? %>
+                    <%= render 'curriculum_plan_attachment_show', f: attachment %>
+                  <% else %>
+                    <%= render 'curriculum_plan_attachment_fields', f: attachment %>
+                  <% end %>
+                <% end %>
+              <% end %>
+            </tbody>
+            <% if !action_name.eql?('show') %>
+              <tfoot class="links">
+                <tr>
+                  <td colspan="2">
+                    <%= link_to_add_association t('discipline_teaching_plans.form.add_attachment', default: 'Adicionar Anexo'), cp_form, :curriculum_plan_attachments,
+                      class: 'btn btn-success btn-sm',
+                      :"data-association-insertion-method" => "append",
+                      :"data-association-insertion-node" => "#curriculum-plan-attachments" %>
+                  </td>
+                </tr>
+              </tfoot>
+            <% end %>
+          </table>
+        </div>
+      </div>
+    </fieldset>
+
+    <% if cp_form.object.persisted? %>
+      <fieldset>
+        <legend><%= t('teaching_plans.form.additional_information', default: 'Informações Adicionais') %></legend>
+
+        <div class="row">
+          <div class="col col-sm-12">
+            <%= cp_form.input :opinion, input_html: { class: 'col col-sm-12' }, readonly: (action_name.eql?('show') || current_user.teacher?) %>
+          </div>
+        </div>
+      </fieldset>
+
+      <div style="position: absolute; margin-top: 11px; left: 14px;">
+        <%= cp_form.input :validated, as: :boolean, label: false, inline_label: true, disabled: (action_name.eql?('show') || current_user.teacher?) %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <footer>
+    <%= link_to t('views.form.back', default: 'Voltar'), discipline_curriculum_plans_path, class: 'btn btn-default' %>
+    <%= link_to '<i class="fa fa-print"></i> Imprimir PDF'.html_safe, discipline_curriculum_plan_path(@discipline_curriculum_plan, format: :pdf), class: 'btn btn-info', target: '_blank' if @discipline_curriculum_plan.persisted? %>
+    <%= link_to '<i class="fa fa-clone"></i> Copiar para meu Plano de Ensino'.html_safe, copy_discipline_curriculum_plans_path(@discipline_curriculum_plan), class: 'btn btn-success' if @discipline_curriculum_plan.persisted? %>
+    <% if action_name == 'show' && curriculum_plan_can_edit? %>
+      <%= link_to '<i class="fa fa-pencil"></i> Editar'.html_safe, edit_discipline_curriculum_plan_path(@discipline_curriculum_plan), class: 'btn btn-primary' %>
+    <% end %>
+    <%= f.submit t('views.form.save', default: 'Salvar'), class: 'btn btn-primary', data: { disable_with: 'Salvando...' } unless action_name == 'show' %>
+  </footer>
+<% end %>

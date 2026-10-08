@@ -1,0 +1,9 @@
+# Adicione no bloco de itens sob 'teaching_plans' em config/navigation.yml:
+      - title: "Planos Curriculares"
+        type: "discipline_curriculum_plans"
+        path: "discipline_curriculum_plans_path"
+        permission: "curriculum_plan"
+      - title: "Planos Curriculares por Área"
+        type: "knowledge_area_curriculum_plans"
+        path: "knowledge_area_curriculum_plans_path"
+        permission: "curriculum_plan"

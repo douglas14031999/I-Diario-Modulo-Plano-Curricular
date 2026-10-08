@@ -1,0 +1,32 @@
+pt-BR:
+  activerecord:
+    models:
+      curriculum_plan: "Plano Curricular"
+      discipline_curriculum_plan: "Plano Curricular por Disciplina"
+      knowledge_area_curriculum_plan: "Plano Curricular por Área de Conhecimento"
+    attributes:
+      curriculum_plan:
+        unity_id: "Escola"
+        unity: "Escola"
+        grade_id: "Série/Ano"
+        grade: "Série/Ano"
+        discipline_id: "Disciplina"
+        discipline: "Disciplina"
+        school_term_type_step_id: "Etapa"
+        school_term_type_step: "Etapa"
+        school_term_type_id: "Tipo de termo letivo"
+        school_term_type: "Tipo de termo letivo"
+        year: "Ano"
+        methodology: "Metodologia"
+        evaluation: "Avaliação"
+        references: "Referências"
+        opinion: "Parecer"
+        contents: "Conteúdos"
+        objectives: "Objetivos"
+        validated: "Plano Curricular validado"
+    errors:
+      models:
+        curriculum_plan:
+          attributes:
+            contents:
+              at_least_one_content_assigned: "Deve possuir pelo menos um conteúdo"

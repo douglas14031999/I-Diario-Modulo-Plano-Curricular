@@ -1,0 +1,16 @@
+pt-BR:
+  activerecord:
+    models:
+      discipline_curriculum_plan:
+        one: "Plano Curricular por disciplina"
+        other: "Planos Curriculares por disciplina"
+
+    attributes:
+      discipline_curriculum_plan:
+        curriculum_plan: "Plano Curricular"
+        curriculum_plan_id: "Plano Curricular"
+        discipline: "Disciplina"
+        discipline_id: "Disciplina"
+        thematic_unit: "Unidade temática"
+        objectives: "Objetivos"
+        contents: "Conteúdos"

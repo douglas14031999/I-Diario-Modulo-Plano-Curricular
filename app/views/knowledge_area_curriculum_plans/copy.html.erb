@@ -1,0 +1,134 @@
+<div class="widget-body no-padding">
+
+  <%= simple_form_for @copy_form, url: copy_knowledge_area_curriculum_plans_path(@knowledge_area_curriculum_plan), method: :post, html: {
+    class: 'smart-form',
+    id: 'copy_knowledge_area_curriculum_plan'
+  } do |f| %>
+
+    <%= f.error_notification %>
+    <%= render 'base_errors', f: f %>
+
+    <div class="alert alert-info">
+      <i class='fa-fw fa fa-info'></i>
+      <strong>Importante</strong>
+      <span>
+        o plano curricular por área de conhecimento só será replicado para escolas de destino que possuírem turmas com vínculo a área de conhecimento de origem e vínculo a uma das séries de destino.
+      </span>
+    </div>
+
+    <% if @conflict_detected %>
+      <div class="alert alert-warning">
+        <i class="fa fa-warning"></i>
+        <strong>Atenção! Conflito de Plano:</strong> Já existe um Plano de Ensino seu registrado para esta escola e série.
+        Para sobrescrever os conteúdos existentes com esta matriz da rede, marque a opção abaixo.
+      </div>
+    <% end %>
+
+    <%= f.simple_fields_for :curriculum_plan, @knowledge_area_curriculum_plan.curriculum_plan do |curriculum_plan_form| %>
+      <fieldset>
+
+        <div class="row">
+          <div class="col col-sm-4">
+            <%= curriculum_plan_form.input :year, readonly: true, required: false %>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col col-sm-4">
+            <%= curriculum_plan_form.association :unity, as: :select2,
+                  elements: ([{ id: '', name: 'Toda a Rede', text: 'Toda a Rede' }] + @unities.map { |u| { id: u.id, name: u.to_s, text: u.to_s } }).to_json,
+                  selected: (curriculum_plan_form.object.unity_id.presence || ''),
+                  label: 'Escola', required: false, readonly: true,
+                  input_html: { data: { without_json_parser: true } } %>
+          </div>
+
+          <div class="col col-sm-4">
+            <%= curriculum_plan_form.association :grade, as: :select2, elements: @grades,
+                  selected: curriculum_plan_form.object.grade_id,
+                  label: 'Série', required: false, readonly: true %>
+          </div>
+
+          <div class="col col-sm-4">
+            <%= f.simple_fields_for :knowledge_area_curriculum_plan, @knowledge_area_curriculum_plan do |form| %>
+              <%= form.input :knowledge_area_ids, as: :select2,
+                    elements: @knowledge_areas, multiple: true,
+                    input_html: { data: { without_json_parser: true } },
+                    readonly: true,
+                    label: 'Áreas do conhecimento',
+                    selected: @knowledge_area_curriculum_plan.knowledge_areas.map(&:id) %>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col col-sm-4">
+            <%= curriculum_plan_form.association :school_term_type, as: :select2, required: false,
+                  elements: SchoolTermType.to_select2(
+                    @knowledge_area_curriculum_plan.curriculum_plan.year,
+                    nil,
+                    add_empty_element: false
+                  ).to_json,
+                  input_html: { value: curriculum_plan_form.object.school_term_type_id, data: { without_json_parser: true } },
+                  readonly: true %>
+          </div>
+
+          <div class="col col-sm-4">
+            <%= curriculum_plan_form.association :school_term_type_step, as: :select2, required: false,
+                  elements: SchoolTermTypeStep.to_select2(
+                    @knowledge_area_curriculum_plan.curriculum_plan.year,
+                    nil
+                  ).to_json,
+                  input_html: { value: curriculum_plan_form.object.school_term_type_step_id, data: { without_json_parser: true } },
+                  readonly: true %>
+          </div>
+
+          <div class="col col-sm-4">
+            <%= f.simple_fields_for :knowledge_area_curriculum_plan, @knowledge_area_curriculum_plan do |form| %>
+              <%= form.input :experience_fields, as: :string, readonly: true, required: false, label: 'Campos de experiência' %>
+            <% end %>
+          </div>
+        </div>
+
+      </fieldset>
+    <% end %>
+
+    <%= f.hidden_field :knowledge_area_curriculum_plan_id, value: @knowledge_area_curriculum_plan.id %>
+
+    <fieldset>
+      <legend>Copiar para:</legend>
+
+      <div class="row">
+        <div class="col col-sm-4">
+          <%= f.input :year, required: true, label: 'Ano', input_html: { value: @copy_form.year || @knowledge_area_curriculum_plan.curriculum_plan.year } %>
+        </div>
+
+        <div class="col col-sm-4">
+          <%= f.input :unity_id, as: :select2, elements: @unities, required: true, label: 'Escolas', selected: @copy_form.unity_id %>
+        </div>
+
+        <div class="col col-sm-4">
+          <%= f.input :grade_id, as: :select2, elements: @grades, required: true, label: 'Séries', selected: @copy_form.grade_id %>
+        </div>
+      </div>
+
+      <% if @conflict_detected %>
+        <div class="row" style="margin-top: 15px; margin-left: 0;">
+          <div class="col col-sm-12">
+            <label class="checkbox">
+              <%= f.check_box :replace_existing %>
+              <i></i>
+              <strong>Sim, desejo substituir meu plano de ensino anterior por este Plano Curricular</strong>
+            </label>
+          </div>
+        </div>
+      <% end %>
+    </fieldset>
+
+    <footer>
+      <%= link_to t('views.form.back'), knowledge_area_curriculum_plans_path, class: 'btn btn-default' %>
+      <%= f.button :submit, t('views.form.copy'), class: 'btn btn-primary', data: { disable_with: 'Copiando...' } %>
+    </footer>
+
+  <% end %>
+
+</div>

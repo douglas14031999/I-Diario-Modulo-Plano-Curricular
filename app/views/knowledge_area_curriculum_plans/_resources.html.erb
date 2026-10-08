@@ -1,0 +1,68 @@
+<tbody id="resources-tbody">
+  <% if @knowledge_area_curriculum_plans.blank? || @knowledge_area_curriculum_plans.empty? %>
+    <tr>
+      <td class="no_record_found text-center" colspan="8"><%= t('views.index.no_record_found', default: 'Nenhum plano curricular por área encontrado.') %></td>
+    </tr>
+  <% else %>
+    <% @knowledge_area_curriculum_plans.each do |plan| %>
+      <tr>
+        <td style="min-width: 100px;">
+          <strong><%= plan.curriculum_plan.year %></strong>
+          <% if plan.curriculum_plan.attachments? %>
+            <i class="fa fa-paperclip apply_tooltip" data-original-title="Possui anexos"></i>
+          <% end %>
+        </td>
+        <td style="min-width: 120px;"><%= plan.curriculum_plan.grade %></td>
+        <td style="min-width: 180px;"><strong><%= plan.knowledge_areas.map(&:to_s).join(', ') %></strong></td>
+        <td style="min-width: 160px;"><%= plan.experience_fields.presence || '-' %></td>
+        <td style="min-width: 130px;">
+          <%= plan.curriculum_plan.school_term_type %>
+        </td>
+        <td style="min-width: 130px;">
+          <%= plan.curriculum_plan.school_term_type_step_humanize.presence || '-' %>
+        </td>
+        <td style="min-width: 150px;">
+          <%= plan.curriculum_plan.created_by_user&.name.presence || 'Secretaria / Rede' %>
+        </td>
+        <td class="actions" style="min-width: 190px; width: 190px; white-space: nowrap;">
+          <%= link_to(
+                t('helpers.links.show_html'),
+                knowledge_area_curriculum_plan_path(plan),
+                class: 'btn btn-info apply_tooltip',
+                data: { original_title: t('views.index.tooltips.show') }) %>
+
+          <%= link_to(
+                t('helpers.links.print_html'),
+                knowledge_area_curriculum_plan_path(plan, format: :pdf),
+                class: 'btn btn-info apply_tooltip',
+                target: '_blank',
+                data: { original_title: t('views.index.tooltips.print') }) %>
+
+          <%= link_to(
+                t('helpers.links.copy_html'),
+                copy_knowledge_area_curriculum_plans_path(plan),
+                class: 'btn btn-info apply_tooltip',
+                data: { original_title: 'Copiar para meu Plano de Ensino' }) %>
+
+          <% if current_user.can_change?(:knowledge_area_curriculum_plans) %>
+            <%= link_to(
+                  t('helpers.links.edit_html'),
+                  edit_knowledge_area_curriculum_plan_path(plan),
+                  class: 'btn btn-success apply_tooltip',
+                  data: { original_title: t('views.index.tooltips.edit') }) %>
+
+            <%= link_to(
+                  t('helpers.links.destroy_html'),
+                  knowledge_area_curriculum_plan_path(plan),
+                  class: 'btn btn-danger apply_tooltip',
+                  method: :delete,
+                  data: {
+                    confirm: t('views.index.confirm_deletion'),
+                    original_title: t('views.index.tooltips.destroy')
+                  }) %>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  <% end %>
+</tbody>
