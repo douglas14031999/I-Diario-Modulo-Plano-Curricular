@@ -1,0 +1,13 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Shell scripts must always use LF
+*.sh text eol=lf
+
+# Explicitly declare text files
+*.rb text
+*.erb text
+*.yml text
+*.yaml text
+*.json text
+*.md text
